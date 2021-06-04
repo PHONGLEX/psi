@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from celery.schedules import crontab
 
 import environ
 env = environ.Env(
@@ -87,11 +88,8 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('NAME'),
-        'USER': env('USER'),
-        'PASSWORD': env('PASSWORD'),
-        'HOST': env('HOST')
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -158,3 +156,28 @@ SWAGGER_SETTINGS = {
         }
     }
 }
+
+REST_FRAMEWORK = {
+    # 'NON_FIELD_ERRORS': 'error',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 'PAGE_SIZE': 100,
+    # 'EXCEPTION_HANDLER': 'utils.exceptionhandler.custom_exception_handle'
+}
+
+CELERY_BEAT_SCHEDULE = {
+    "scheduled_task_psi": {
+        "task": "api.tasks.get_psi_data",
+        "schedule": crontab(),
+    },
+    "scheduled_task_air_temperature": {
+        "task": "api.tasks.get_airtemperature_data",
+        "schedule": crontab(),
+    }
+}
+
+CODE_S109 = "S109"
+
+CELERY_BROKER_URL = 'redis://0.0.0.0:7001/0'
